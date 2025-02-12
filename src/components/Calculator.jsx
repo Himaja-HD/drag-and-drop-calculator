@@ -1,87 +1,95 @@
 import { useState, useCallback, useEffect } from "react";
-
 export default function Calculator() {
+  const [display, setDisplay] = useState("0");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      if (newMode) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      return newMode;
+    });
+  };
 
-  const [expression, setExpression] = useState("0");
-
-  // State localStorage
+  // storing history
   const [history, setHistory] = useState(() => {
     const savedHistory = localStorage.getItem("calcHistory");
     return savedHistory ? JSON.parse(savedHistory) : ["0"];
   });
 
-  // Index for undo/redo
-  const [index, setIndex] = useState(history.length - 1);
+  const [historyIndex, setHistoryIndex] = useState(history.length - 1);
 
-  // Numbers and operators for the calculator
-  const [numbers, setNumbers] = useState(["7", "8", "9", "4", "5", "6", "1", "2", "3"]);
-  const [operators, setOperators] = useState(["/", "*", "-", "+", "."]);
+  // Numbers and operators
+  const [numberButtons, setNumberButtons] = useState(["7", "8", "9", "4", "5", "6", "1", "2", "3"]);
+  const [operatorButtons, setOperatorButtons] = useState(["/", "*", "-", "+", "."]);
 
-  // Save history to localStorage on change
+  // Save history to localStorage
   useEffect(() => {
     localStorage.setItem("calcHistory", JSON.stringify(history));
   }, [history]);
 
-  // Handle number and operator input
+  // Handle input for numbers and operators
   const handleInput = (value) => {
-    setExpression((prev) => (prev === "0" && !isNaN(value) ? value : prev + value));
+    setDisplay((prev) => (prev === "0" && !isNaN(value) ? value : prev + value));
   };
 
-  // Calculate result and update history
+  // Perform calculation
   const calculateResult = useCallback(() => {
     try {
-      if (!/^[0-9+\-*/.]+$/.test(expression)) {
+      if (!/^[0-9+\-*/.]+$/.test(display)) {
         throw new Error("Invalid expression");
       }
-      const result = Function(`"use strict"; return (${expression})`)();
-      setExpression(result.toString());
-      const newHistory = history.slice(0, index + 1);
+      const result = Function(`"use strict"; return (${display})`)();
+      setDisplay(result.toString());
+      const newHistory = history.slice(0, historyIndex + 1);
       setHistory([...newHistory, result.toString()]);
-      setIndex(newHistory.length);
+      setHistoryIndex(newHistory.length);
     } catch {
-      setExpression("Error");
+      setDisplay("Error");
     }
-  }, [expression, history, index]);
+  }, [display, history, historyIndex]);
 
-  // Undo 
+  // Undo and Redo functionality
   const undo = () => {
-    if (index > 0) {
-      setIndex(index - 1);
-      setExpression(history[index - 1]);
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setDisplay(history[historyIndex - 1]);
     }
   };
 
-  // Redo 
   const redo = () => {
-    if (index < history.length - 1) {
-      setIndex(index + 1);
-      setExpression(history[index + 1]);
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setDisplay(history[historyIndex + 1]);
     }
   };
 
-  // Clear history
-  const clearExpression = () => {
-    setExpression("0");
+  // Clear display and history
+  const clearDisplay = () => {
+    setDisplay("0");
     setHistory(["0"]);
-    setIndex(0);
+    setHistoryIndex(0);
   };
 
-  // Clear last digit
-  const clearLastDigit = () => {
-    setExpression((prev) => (prev.length > 1 ? prev.slice(0, -1) : "0"));
+  // Remove last digit from display
+  const deleteLastDigit = () => {
+    setDisplay((prev) => (prev.length > 1 ? prev.slice(0, -1) : "0"));
   };
 
-  // drag-and-drop
+  // Drag-and-drop functionality for buttons
   const moveButton = (fromIndex, toIndex, type) => {
     if (type === "number") {
-      setNumbers((prev) => {
+      setNumberButtons((prev) => {
         const updated = [...prev];
         const [moved] = updated.splice(fromIndex, 1);
         updated.splice(toIndex, 0, moved);
         return updated;
       });
     } else if (type === "operator") {
-      setOperators((prev) => {
+      setOperatorButtons((prev) => {
         const updated = [...prev];
         const [moved] = updated.splice(fromIndex, 1);
         updated.splice(toIndex, 0, moved);
@@ -90,102 +98,100 @@ export default function Calculator() {
     }
   };
 
-  // Add new number
-  const addNumber = () => {
+  // Add a new number
+  const addNewNumber = () => {
     const newNumber = prompt("Enter a new number:");
-    if (newNumber && /^[0-9]$/.test(newNumber) && !numbers.includes(newNumber)) {
-      setNumbers([...numbers, newNumber]);
+    if (newNumber && /^[0-9]$/.test(newNumber) && !numberButtons.includes(newNumber)) {
+      setNumberButtons([...numberButtons, newNumber]);
     }
   };
 
   // Remove last number
-  const removeNumber = () => {
-    setNumbers(numbers.slice(0, -1));
+  const removeLastNumber = () => {
+    setNumberButtons(numberButtons.slice(0, -1));
   };
 
-  // Add new operator
-  const addOperator = () => {
+  // Add a new operator
+  const addNewOperator = () => {
     const newOperator = prompt("Enter a new operator:");
     if (newOperator && /^[+\-*/.]$/.test(newOperator)) {
-      setOperators([...operators, newOperator]);
+      setOperatorButtons([...operatorButtons, newOperator]);
     }
   };
 
-  // Remove last operator button
-  const removeOperator = () => {
-    setOperators(operators.slice(0, -1));
+  // Remove last operator
+  const removeLastOperator = () => {
+    setOperatorButtons(operatorButtons.slice(0, -1));
   };
 
   return (
-    <div className="bg-cyan-800 border-gray-100 border-4">
-    <div className=" p-4 ml-40 bg-cyan-500 rounded-lg shadow-md">
-      <h1 className="text-4xl text-white font-bold text-center mb-4">Calculator</h1>
-      <div className="text-2xl p-3 bg-white rounded mb-2 text-right">{expression}</div>
-
-      {/* Calculator buttons */}
-      <div className="grid grid-cols-4 gap-2">
-        {/* Operator buttons */}
-        <div className="grid grid-rows-4 gap-2">
-          {operators.map((op, index) => (
-            <button
-              key={index}
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData("text/plain", JSON.stringify({ index, type: "operator" }))}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                const { index: fromIndex, type } = JSON.parse(e.dataTransfer.getData("text/plain"));
-                moveButton(parseInt(fromIndex), index, type);
-              }}
-              onClick={() => handleInput(op)}
-              className="p-4 text-black bg-gray-200 rounded cursor-pointer hover:bg-gray-400 transition w-full"
-            >
-              {op}
-            </button>
-          ))}
+    <div className="h-3/5 w-3/5 justify-items-center">
+      <div className="page-section">
+        <div className="header-section flex justify-center items-center mb-4">
+          <h1 className="text-4xl text-white font-bold text-center">CALCULATOR</h1>
+          <button onClick={toggleDarkMode} className="dark-mode-toggle">
+            {isDarkMode ? <i className="fas fa-sun"></i> : <i className="fas fa-moon"></i>}
+          </button>
         </div>
 
-        {/* Number buttons */}
-        <div className="col-span-3 grid grid-cols-3 gap-2">
-          {numbers.map((num, index) => (
-            <button
-              key={index}
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData("text/plain", JSON.stringify({ index, type: "number" }))}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                const { index: fromIndex, type } = JSON.parse(e.dataTransfer.getData("text/plain"));
-                moveButton(parseInt(fromIndex), index, type);
-              }}
-              onClick={() => handleInput(num)}
-              className="p-4 text-black bg-gray-100 rounded cursor-pointer hover:bg-gray-200 transition w-full"
-            >
-              {num}
-            </button>
-          ))}
-          {/* Zero button */}
-          <button onClick={() => handleInput("0")} className="p-4 text-black bg-gray-300 rounded cursor-pointer hover:bg-gray-400 transition w-full">0</button>
-          {/* Clear */}
-          <button onClick={clearExpression} className="p-4 text-white bg-red-500 rounded transition w-full">Clear</button>
-          {/* Backspace */}
-          <button onClick={clearLastDigit} className="p-4 text-black bg-gray-500 rounded hover:bg-gray-600 transition w-full">⌫</button>
+        <div className="expression-area">{display}</div>
+
+        <div className="calculator-grid">
+          <div className="grid grid-rows-4 gap-2">
+            {operatorButtons.map((op, index) => (
+              <button
+                key={index}
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData("text/plain", JSON.stringify({ index, type: "operator" }))}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  const { index: fromIndex, type } = JSON.parse(e.dataTransfer.getData("text/plain"));
+                  moveButton(parseInt(fromIndex), index, type);
+                }}
+                onClick={() => handleInput(op)}
+                className="common-btn operator-btn"
+              >
+                {op}
+              </button>
+            ))}
+          </div>
+
+          <div className="calculator-number-grid">
+            {numberButtons.map((num, index) => (
+              <button
+                key={index}
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData("text/plain", JSON.stringify({ index, type: "number" }))}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  const { index: fromIndex, type } = JSON.parse(e.dataTransfer.getData("text/plain"));
+                  moveButton(parseInt(fromIndex), index, type);
+                }}
+                onClick={() => handleInput(num)}
+                className="common-btn number-btn"
+              >
+                {num}
+              </button>
+            ))}
+            <button onClick={() => handleInput("0")} className="common-btn zero-btn">0</button>
+            <button onClick={clearDisplay} className="common-btn clear-btn">Clear</button>
+            <button onClick={deleteLastDigit} className="common-btn backspace-btn">⌫</button>
+          </div>
+        </div>
+
+        <div className="calculator-grid mt-2">
+          <button onClick={undo} className="common-btn undo-btn">Undo</button>
+          <button onClick={redo} className="common-btn redo-btn">Redo</button>
+          <button onClick={calculateResult} className="common-btn enter-btn">Enter</button>
+        </div>
+
+        <div className="calculator-grid mt-2">
+          <button onClick={addNewNumber} className="common-btn add-num-op-btn">+Num</button>
+          <button onClick={removeLastNumber} className="common-btn remove-num-op-btn">-Num</button>
+          <button onClick={addNewOperator} className="common-btn add-num-op-btn">+Op</button>
+          <button onClick={removeLastOperator} className="common-btn remove-num-op-btn">-Op</button>
         </div>
       </div>
-
-      {/* Undo, Redo, and Enter */}
-      <div className="grid grid-cols-4 gap-2 mt-2">
-        <button onClick={undo} className="p-4 text-white bg-blue-500 rounded hover:bg-blue-600 transition w-full">Undo</button>
-        <button onClick={redo} className="p-4 text-white bg-green-500 rounded hover:bg-green-600 transition w-full">Redo</button>
-        <button onClick={calculateResult} className="p-4 text-white bg-yellow-500 rounded  hover:text-2xl transition w-full col-span-2">Enter</button>
-      </div>
-
-      {/* Add/Remove number and operator */}
-      <div className="grid grid-cols-4 gap-2 mt-2">
-        <button onClick={addNumber} className="p-4 bg-gray-100 text-black rounded hover:text-cyan-600 w-full">+Num</button>
-        <button onClick={removeNumber} className="p-4  bg-gray-100 text-black rounded hover:text-red-600 w-full">-Num</button>
-        <button onClick={addOperator} className="p-4  bg-gray-100 text-black rounded hover:text-cyan-600 w-full">+Op</button>
-        <button onClick={removeOperator} className="p-4  bg-gray-100 text-black rounded hover:text-red-600 w-full">-Op</button>
-      </div>
-    </div>
     </div>
   );
 }

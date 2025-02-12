@@ -1,2 +1,77 @@
 @import "tailwindcss";
 
+* {
+  @apply overflow-hidden;
+}
+
+#root {
+  @apply bg-cyan-200 dark:bg-cyan-900;
+}
+
+.common-btn {
+  @apply p-4 text-black rounded cursor-pointer transition w-full dark:text-white;
+}
+
+.header-section {
+  @apply flex justify-between items-center mb-4;
+}
+
+.operator-btn {
+  @apply bg-gray-200 hover:bg-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700;
+}
+
+.number-btn {
+  @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600;
+}
+
+.zero-btn {
+  @apply bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500;
+}
+
+.clear-btn {
+  @apply bg-red-500 text-white dark:bg-red-700 dark:text-white;
+}
+
+.backspace-btn {
+  @apply bg-gray-500 hover:bg-gray-600 text-black dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white;
+}
+
+.undo-btn {
+  @apply bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800;
+}
+
+.redo-btn {
+  @apply bg-green-500 hover:bg-green-600 text-white dark:bg-green-700 dark:hover:bg-green-800;
+}
+
+.enter-btn {
+  @apply bg-yellow-500 hover:text-2xl text-white col-span-2 dark:bg-yellow-600 dark:hover:bg-yellow-700;
+}
+
+.add-num-op-btn {
+  @apply bg-gray-100 text-black hover:text-cyan-600 dark:bg-gray-800 dark:text-white dark:hover:text-cyan-400;
+}
+
+.remove-num-op-btn {
+  @apply bg-gray-100 text-black hover:text-red-600 dark:bg-gray-800 dark:text-white dark:hover:text-red-400;
+}
+
+.page-section {
+  @apply p-4 -ml-0 bg-cyan-500 rounded-lg  border-cyan-800 border-4 shadow-md dark:bg-cyan-800 dark:shadow-lg;
+}
+
+.expression-area {
+  @apply text-2xl p-3 bg-white rounded mb-2 text-right dark:bg-gray-900 dark:text-white;
+}
+
+.calculator-grid {
+  @apply grid grid-cols-4 gap-2;
+}
+
+.calculator-number-grid {
+  @apply col-span-3 grid grid-cols-3 gap-2;
+}
+
+.dark-mode-toggle {
+  @apply text-white p-2 rounded focus:outline-none;
+}
